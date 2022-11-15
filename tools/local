@@ -1,0 +1,71 @@
+#!/bin/bash
+
+# Options with defaults
+provider_registry="registry.terraform.io"
+provider_group="techjavelin"
+provider_name="jumpcloud"
+plugin_name="terraform-provider-jumpcloud"
+plugins_dir="~/.teraform.d/plugins"
+
+# Required options
+provider_version=
+build_os=
+build_arch=
+artifact_file=
+
+error() { echo "$@" 1>&2; }
+
+usage()
+{
+    echo "
+    Usage: $0 [options] -v|--version <version> -o|--os <os> -a|--arch <arch> file
+    
+    Options:
+      -r, --registry REGISTRY       The registry this provider is published to
+                                    Default: $provider_registry
+      -g, --group GROUP             The group for this provider
+                                    Default: $provider_group
+      -n, --name NAME               The provider name
+                                    Default: $provider_name
+      -d, --plugins-dir DIR         The terraform plugins directory
+                                    Default: $plugins_dir
+    "
+}
+
+OPTS=$(getopt -o r:g:n:v:o:a:d: --long registry:,group:,name:,verison:,os:,arch:,plugins-dir: -n 'local' -- "$@")
+
+if [ $? != 0 ] ; then
+    usage
+    exit 1
+fi
+
+eval set -- "$OPTS"
+
+while true; do
+    case "$1" in
+        -r | --registry )       provider_registry="$2"; shift 2 ;;
+        -g | --group )          provider_group="$2"; shift 2 ;;
+        -n | --name )           provider_name="$2"; shift 2 ;;
+        -v | --version )        provider_version="$2"; shift 2 ;;
+        -o | --os )             build_os="$2"; shift 2 ;;
+        -a | --arch )           build_arch="$2"; shift 2 ;;
+        -d | --plugins-dir )    plugins_dir="$2"; shift 2 ;;
+        --)                     shift; break;
+        *)                      error "Unexpected option: $1"; usage ;;
+    esac
+done
+
+if [ -z $1 ]; then
+    error "Missing Artifact File"
+    usage
+    exit 1
+fi
+
+install_path="$plugins_dir/$provider_registry/$provider_group/$provider_name/$provider_version/$build_os_$build_arch"
+
+if [ -d "$install_path" ];
+    rm -rf $install_path
+fi
+
+mkdir -p $install_path
+cp $artifact_file $install_path/$plugin_name

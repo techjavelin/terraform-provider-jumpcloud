@@ -58,3 +58,10 @@ release:
   # draft: true
 changelog:
   skip: true
+
+snapshot:
+  name_template: '{{ incpatch .Version }}-dev'
+
+publishers:
+  - name: "local-publisher"
+    cmd: ./tools/local --version {{ .Version }} --os {{ .Os }} --arch {{ .Arch }} --file {{ dir .ArtifactPath }}/{{ ArtifactName }}
