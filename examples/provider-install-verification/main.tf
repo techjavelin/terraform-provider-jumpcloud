@@ -15,5 +15,9 @@ provider "jumpcloud" {
 }
 
 resource "jumpcloud_ad" "test_com" {
-    domain = "{DC=test,DC=com}"
+    domain = "DC=test,DC=com"
+}
+
+resource "jumpcloud_devicegroup" "test" {
+  name = "Test Group"
 }

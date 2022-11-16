@@ -102,6 +102,7 @@ func (p *JumpCloudProvider) Configure(ctx context.Context, req provider.Configur
 func (p *JumpCloudProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		NewActiveDirectoryResource,
+		NewDeviceGroupResource,
 	}
 }
 
