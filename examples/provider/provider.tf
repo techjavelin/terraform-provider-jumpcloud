@@ -1,3 +1,3 @@
 provider "jumpcloud" {
-  api_key = "asdf"
+  api_key = "API_KEY_GOES_HERE"
 }
