@@ -1,4 +1,4 @@
-package jumpcloud
+package devicegroup
 
 import (
 	"context"

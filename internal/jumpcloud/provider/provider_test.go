@@ -1,4 +1,4 @@
-package jumpcloud
+package provider
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"

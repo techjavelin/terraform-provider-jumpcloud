@@ -1,4 +1,4 @@
-package jumpcloud
+package provider
 
 import (
 	"context"
@@ -12,8 +12,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 
-
 	jcapiv2 "github.com/TheJumpCloud/jcapi-go/v2"
+
+	"github.com/techjavelin/terraform-provider-jumpcloud/activedirectory"
+	"github.com/techjavelin/terraform-provider-jumpcloud/devicegroup"
+	"github.com/techjavelin/terraform-provider-jumpcloud/usergroup"
 )
 
 const API_ACCEPT_TYPE = "application/json"

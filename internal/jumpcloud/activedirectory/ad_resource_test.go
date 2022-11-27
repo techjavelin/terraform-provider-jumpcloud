@@ -1,4 +1,4 @@
-package jumpcloud
+package activedirectory
 
 import (
     "testing"
