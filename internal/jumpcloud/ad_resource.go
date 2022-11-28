@@ -185,5 +185,5 @@ func (r *ActiveDirectoryResource) Delete(ctx context.Context, req resource.Delet
 }
 
 func (r *ActiveDirectoryResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("name"), req, resp)
+	resource.ImportStatePassthroughID(ctx, path.Root("domain"), req, resp)
 }

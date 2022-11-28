@@ -30,13 +30,7 @@ func TestAccActiveDirectoryResource(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
-			// Update and Read Testing
-			{
-				Config: ProviderConfig() + `resource "jumpcloud_ad" "test" { domain = "DC=test1,DC=com" }`,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("jumpcloud_ad.test", "domain", "DC=test1,DC=com"),
-				),
-			},
+			// Update is not supported -- how do we test for expecting an error tho?
 			// Delete Testing happens automatically
 		},
 	})
