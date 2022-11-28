@@ -18,7 +18,7 @@ func TestAccActiveDirectoryResource(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Create and Read Testing
 			{
-				Config: ProviderConfig + ResourceConfig,
+				Config: ProviderConfig() + ResourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("jumpcloud_ad.test", "domain", "DC=test,DC=com"),
 					resource.TestCheckResourceAttrSet("jumpcloud_ad.test", "id"),
@@ -32,7 +32,7 @@ func TestAccActiveDirectoryResource(t *testing.T) {
 			},
 			// Update and Read Testing
 			{
-				Config: ProviderConfig + `resource "jumpcloud_ad" "test" { domain = "DC=test1,DC=com" }`,
+				Config: ProviderConfig() + `resource "jumpcloud_ad" "test" { domain = "DC=test1,DC=com" }`,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("jumpcloud_ad.test", "domain", "DC=test1,DC=com"),
 				),
