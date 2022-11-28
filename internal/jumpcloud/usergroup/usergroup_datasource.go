@@ -1,6 +1,0 @@
-package usergroup
-
-import (
-
-)
-
