@@ -131,6 +131,7 @@ var UserGroupSchema = tfsdk.Schema{
 					}),
 				},
 			}),
+			Optional: true,
 		},
 		"member-suggestions-notify": {
 			MarkdownDescription: "Whether to send notifications for new member suggestions that match member-query-filters",
