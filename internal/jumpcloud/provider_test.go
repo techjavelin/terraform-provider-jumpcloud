@@ -8,11 +8,7 @@ import (
 )
 
 func ProviderConfig() string {
-	return `
-provider "jumpcloud" {
-	api_key = "${ ` + os.Getenv("JUMPCLOUD_API_KEY") + ` }"
-}
-`
+	return "provider \"jumpcloud\" { api_key = \"" + os.Getenv("JUMPCLOUD_API_KEY") + "\" }\n"
 }
 
 var testAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){
