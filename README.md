@@ -8,6 +8,7 @@
 [![continuous // main](https://github.com/techjavelin/terraform-provider-jumpcloud/actions/workflows/continuous.yml/badge.svg)](https://github.com/techjavelin/terraform-provider-jumpcloud/actions/workflows/continuous.yml)
 
 </div>
+
 The JumpCloud Terraform Provider is an unofficial plugin for managing your JumpCloud tenant configuration through the [Terraform](https://www.terraform.io) tool. 
 
 ---
