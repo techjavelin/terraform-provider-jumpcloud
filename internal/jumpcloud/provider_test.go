@@ -1,8 +1,8 @@
 package jumpcloud
 
 import (
-	"regexp"
 	"strings"
+	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -24,8 +24,15 @@ var (
 )
 
 func makeFriendlyName(name string) (out string) {
-	m := regexp.MustCompile(`[a-zA-Z0-9_-]`)
 	out = strings.ReplaceAll(name, ".", "-")
 	out = strings.ReplaceAll(out, "*", "x")
-	return m.ReplaceAllString(out, "_")
+	return out
+}
+
+func TestMakeFriendlyName(t *testing.T) {
+	expect := "1-2-x"
+	test := makeFriendlyName("1.2.*")
+	if test != expect {
+		t.Fatalf("Expected %s but got %s", expect, test)
+	}
 }
