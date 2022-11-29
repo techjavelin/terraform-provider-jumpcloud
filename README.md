@@ -1,6 +1,13 @@
+<div align="center">
+
 # JumpCloud Terraform Provider
+[![GoDoc](https://pkg.go.dev/badge/github.com/techjavelin/terraform-provider.jumpcloud.svg)](https://pkg.go.dev/github.com/techjavelin/terraform-provider-jumpcloud)
+[![License](https://img.shields.io/github/license/techjavelin/terraform-provider-jumpcloud.svg?logo=fossa&style=flat-square)](https://github.com/techjavelin/terraform-provider-jumpcloud/blob/main/LICENSE)
+[![Go Reportcard](https://goreportcard.com/badge/github.com/techjavelin/terraform-provider-jumpcloud)](https://goreportcard.com/report/github.com/techjavelin/terraform-provider-jumpcloud)
+[![Release](https://img.shields.io/github/v/release/techjavelin/terraform-provider-jumpcloud?logo=terraform&include_prereleases&style=flat-square)](https://github.com/techjavelin/terraform-provider-jumpcloud/releases)
 [![continuous // main](https://github.com/techjavelin/terraform-provider-jumpcloud/actions/workflows/continuous.yml/badge.svg)](https://github.com/techjavelin/terraform-provider-jumpcloud/actions/workflows/continuous.yml)
 
+</div>
 The JumpCloud Terraform Provider is an unofficial plugin for managing your JumpCloud tenant configuration through the [Terraform](https://www.terraform.io) tool. 
 
 ---
@@ -37,11 +44,11 @@ Then at the command line, run the following command
 $ terraform init
 ```
 
-### Configuration
+## 🎻 Getting Started
 
 Use of the JumpCloud Provider requires a JumpCloud API Key
 
-#### Getting your API Key
+### Getting your API Key
 1. As an Administrator or Command Runner, login to the [JumpCloud Console](https://console.jumpcloud.com)
 2. From any tag inside of the Admin Console, click your account profile icon in the top-right and select `My API Key` from the drop-down. 
 3. Copy the API Key and save it someplace safe. 
@@ -81,17 +88,25 @@ $ terraform validate
 $ TF_VAR_jumpcloud_api_key="1234" terraform plan --out apply.tfplan
 $ TF_VAR_jumpcloud_api_key="1234" terraform apply apply.tfplan
 ```
-#### Rotating your API Key
+### Rotating your API Key
 
 Occasionally, you may want or need to rotate your API Key. Usually this is due to events such as someone who had access to the value of the API key moving on to a new job or being terminated, simple click the button in the dialog you went to above and update your local storage to reflect the new API key
 
-## 👋 Contributing
+---
 
-### 
+## 👋 How you can Contribute
+
+### ☕ Contributing as a Developer
+
+TechJavelin OSS welcomes any and all contributions to help our projects continue to provide value to the open source community! 
 
 ### 🎁 Sponsorship
 
+Official Github Sponsorships are Coming Soon -- in the meantime you can support with [Buy Me A Coffee](https://www.buymeacoffee.com/techjavelin)
+
 ### 🙇 Support & Feedback
+
+We welcome any and all feedback on our projects! Drop in on the [Tech Javelin Official Discord](https://discord.gg/7Jxd8SqhxQ). Professional Services and support are available through our [Official Website](https://techjavelin.com)
 
 ### 🗈 Raise an Issue
 If you have found a bug or if you have a feature request, please raise an issue on our issue tracker.
