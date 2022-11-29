@@ -78,5 +78,5 @@ jobs:
           authHeader: ${{ secrets.CONTRAST_AUTH_HEADER }}
           apiUrl: ${{ secrets.CONTRAST_API_URL }}
           filePath: go.mod
-          severity: medium
+          severity: critical
           fail: true

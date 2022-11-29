@@ -87,10 +87,14 @@ Occasionally, you may want or need to rotate your API Key. Usually this is due t
 
 ## 👋 Contributing
 
-🙇 Support & Feedback
+### 
 
-### Raise an Issue
+### 🎁 Sponsorship
+
+### 🙇 Support & Feedback
+
+### 🗈 Raise an Issue
 If you have found a bug or if you have a feature request, please raise an issue on our issue tracker.
 
-### Vulnerability Reporting
+### 🔐 Vulnerability Reporting
 Please do not report security vulnerabilities on the public GitHub issue tracker. Please report directly to oss@techjavelin.com
