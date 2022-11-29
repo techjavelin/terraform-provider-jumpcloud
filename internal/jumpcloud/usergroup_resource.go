@@ -82,7 +82,7 @@ func (r *UserGroupResource) Create(ctx context.Context, req resource.CreateReque
 
 	var created *UserGroupResourceModel = &UserGroupResourceModel{}
 
-	convertApiResponseToResource(ctx, created, &group)
+	r.convertApiResponseToResource(ctx, created, &group)
 	tflog.Info(ctx, "Created new User Group", map[string]interface{}{
 		"api_response":   "\n\n" + spew.Sdump(group) + "\n\n",
 		"resource_model": "\n\n" + spew.Sdump(created) + "\n\n",
@@ -119,7 +119,7 @@ func (r *UserGroupResource) Read(ctx context.Context, req resource.ReadRequest, 
 
 	// tflog.Trace(ctx, "JumpCloud API Response: \n"+spew.Sdump(response.Body))
 
-	convertApiResponseToResource(ctx, plan, &group)
+	r.convertApiResponseToResource(ctx, plan, &group)
 
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
@@ -154,7 +154,7 @@ func (r *UserGroupResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	convertApiResponseToResource(ctx, plan, &group)
+	r.convertApiResponseToResource(ctx, plan, &group)
 
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
@@ -197,7 +197,7 @@ func getStringValueIfNotNil(val *string) types.String {
 	return types.StringNull()
 }
 
-func convertApiResponseToResource(ctx context.Context, plan *UserGroupResourceModel, group *apiclient.UserGroup) {
+func (r *UserGroupResource) convertApiResponseToResource(ctx context.Context, plan *UserGroupResourceModel, group *apiclient.UserGroup) (diags diag.Diagnostics) {
 	plan.Id = types.StringValue(group.Id)
 	plan.Name = types.StringValue(group.Name)
 	plan.Description = getStringValueIfNotNil(group.Description)
@@ -216,13 +216,40 @@ func convertApiResponseToResource(ctx context.Context, plan *UserGroupResourceMo
 		}
 
 		for _, ldapGroup := range group.Attributes.LdapGroups {
-			if plan.Ldap == nil {
-				plan.Ldap = &LdapInfo{}
+			var ldapInfo LdapInfo
+			if plan.Ldap.IsNull() || plan.Ldap.IsUnknown() {
+				ldapInfo = LdapInfo{}
+			} else {
+				diags := plan.Ldap.As(ctx, ldapInfo, types.ObjectAsOptions{
+					UnhandledNullAsEmpty:    true,
+					UnhandledUnknownAsEmpty: true,
+				})
+
+				if diags.HasError() {
+					tflog.Error(ctx, "Encountered error attempting to retrieve LdapInfo as Object from Type", map[string]interface{}{
+						"IsNull":    plan.Ldap.IsNull(),
+						"IsUnknown": plan.Ldap.IsUnknown(),
+					})
+					return diags
+				}
 			}
 
-			plan.Ldap.LdapGroups = append(plan.Ldap.LdapGroups, LdapGroupModel{
+			ldapInfo.LdapGroups = append(ldapInfo.LdapGroups, LdapGroupModel{
 				Name: types.StringValue(ldapGroup.Name),
 			})
+
+			tflog.Trace(ctx, "Setting LdapInfo as types.Object on plan", map[string]interface{}{
+				"LdapInfo": spew.Sdump(ldapInfo),
+			})
+
+			ldap, d := types.ObjectValueFrom(ctx, ldapInfo.AttrTypes(), ldapInfo)
+
+			diags.Append(d...)
+			if d.HasError() {
+				return diags
+			}
+
+			plan.Ldap = ldap
 		}
 
 		for _, posixGroup := range group.Attributes.PosixGroups {
@@ -253,6 +280,8 @@ func convertApiResponseToResource(ctx context.Context, plan *UserGroupResourceMo
 	}
 
 	tflog.Trace(ctx, fmt.Sprintf("Converted UserGroup to UserGroupResourceModel:\n\tUserGroup: %s\n\tUserGroupResourceModel: %s", spew.Sdump(group), spew.Sdump(plan)))
+
+	return diags
 }
 
 func getStringIfAttributeNotNil(in types.String) *string {
@@ -275,8 +304,14 @@ func convertResourceToUserGroup(ctx context.Context, plan *UserGroupResourceMode
 
 	var ldapGroups []apiclient.LdapGroup
 
-	if plan.Ldap != nil && len(plan.Ldap.LdapGroups) > 0 {
-		for _, ldap_group := range plan.Ldap.LdapGroups {
+	if !plan.Ldap.IsNull() {
+		var ldapInfo LdapInfo
+		plan.Ldap.As(ctx, ldapInfo, types.ObjectAsOptions{
+			UnhandledNullAsEmpty:    true,
+			UnhandledUnknownAsEmpty: true,
+		})
+
+		for _, ldap_group := range ldapInfo.LdapGroups {
 			ldapGroups = append(ldapGroups, apiclient.LdapGroup{
 				Name: ldap_group.Name.ValueString(),
 			})

@@ -1,6 +1,7 @@
 package jumpcloud
 
 import (
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -8,7 +9,7 @@ type UserGroupResourceModel struct {
 	Id                      types.String       `tfsdk:"id"`
 	Name                    types.String       `tfsdk:"name"`
 	Sudo                    *SudoConfigModel   `tfsdk:"sudo"`
-	Ldap                    *LdapInfo          `tfsdk:"ldap"`
+	Ldap                    types.Object       `tfsdk:"ldap"`
 	PosixGroups             []PosixGroupModel  `tfsdk:"posix"`
 	RadiusReplies           []KVItemModel      `tfsdk:"radius"`
 	Samba                   *SambaConfig       `tfsdk:"samba"`
@@ -26,6 +27,18 @@ type SambaConfig struct {
 
 type LdapInfo struct {
 	LdapGroups []LdapGroupModel `tfsdk:"groups"`
+}
+
+func (l LdapInfo) AttrTypes() map[string]attr.Type {
+	return map[string]attr.Type{
+		"groups": types.ListType{
+			ElemType: types.ObjectType{
+				AttrTypes: map[string]attr.Type{
+					"name": types.StringType,
+				},
+			},
+		},
+	}
 }
 
 type LdapGroupModel struct {
