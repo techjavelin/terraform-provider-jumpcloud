@@ -98,7 +98,7 @@ Occasionally, you may want or need to rotate your API Key. Usually this is due t
 
 ### ☕ Contributing as a Developer
 
-TechJavelin OSS welcomes any and all contributions to help our projects continue to provide value to the open source community! 
+TechJavelin OSS welcomes any and all contributions to help our projects continue to provide value to the open source community! Feel free to create a fork and submit a pull request with your proposed changes at any time!
 
 ### 🎁 Sponsorship
 
