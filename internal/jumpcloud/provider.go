@@ -85,7 +85,7 @@ func (p *JumpCloudProvider) Configure(ctx context.Context, req provider.Configur
 			path.Root("api_key"),
 			"Missing JumpCloud API Key",
 			"The provider cannot create the JumpCloud API client due to a missing or empty value for the JumpCloud API Key. "+
-				"Set the api_key value in the configuration or use the JUMPCLOUD_API_KEY environment varibale. "+
+				"Set the api_key value in the configuration or use the JUMPCLOUD_API_KEY environment variable. "+
 				"If either is already set, ensure the value is not empty.",
 		)
 	}
