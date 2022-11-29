@@ -96,15 +96,15 @@ func (r *UserGroupResource) Create(ctx context.Context, req resource.CreateReque
 }
 
 func (r *UserGroupResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	tflog.Info(ctx, "Refreshing User Group State from JumpCloud")
+
 	var plan *UserGroupResourceModel
 
-	diags := req.State.Get(ctx, plan)
+	diags := req.State.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
-	tflog.Info(ctx, "Refreshing User Group State from JumpCloud")
 
 	group, _, error := r.api.GetUserGroupDetails(plan.Id.ValueString())
 
@@ -164,7 +164,7 @@ func (r *UserGroupResource) Update(ctx context.Context, req resource.UpdateReque
 }
 
 func (r *UserGroupResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var state UserGroupResourceModel
+	var state *UserGroupResourceModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {

@@ -8,27 +8,10 @@ import (
 	"github.com/techjavelin/terraform-provider-jumpcloud/internal/pkg/planmodifiers"
 )
 
-var LdapSchema = tfsdk.Attribute{
-	MarkdownDescription: "List of LDAP Groups the user-group is mapped to",
-	Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
-		"groups": {
-			Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
-				"name": {
-					MarkdownDescription: "The LDAP Group Name",
-					Type:                types.StringType,
-					Required:            true,
-				},
-			}),
-			Optional: true,
-			Computed: true,
-		},
-	}),
-	Optional: true,
-	Computed: true,
-}
-
 var UserGroupSchema = tfsdk.Schema{
-	MarkdownDescription: "User Group",
+	MarkdownDescription: "JumpCloud User Group",
+	Description:         "JumpCloud User Group",
+	Version:             0,
 
 	Attributes: map[string]tfsdk.Attribute{
 		"id": {
@@ -60,7 +43,24 @@ var UserGroupSchema = tfsdk.Schema{
 			}),
 			Optional: true,
 		},
-		"ldap": LdapSchema,
+		"ldap": {
+			MarkdownDescription: "List of LDAP Groups the user-group is mapped to",
+			Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
+				"groups": {
+					Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{
+						"name": {
+							MarkdownDescription: "The LDAP Group Name",
+							Type:                types.StringType,
+							Required:            true,
+						},
+					}),
+					Optional: true,
+					Computed: true,
+				},
+			}),
+			Optional: true,
+			Computed: true,
+		},
 		"posix": {
 			MarkdownDescription: "List of POSIX Groups the user-group is mapped to",
 			Attributes: tfsdk.ListNestedAttributes(map[string]tfsdk.Attribute{

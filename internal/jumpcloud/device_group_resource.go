@@ -41,6 +41,7 @@ func (r *DeviceGroupResource) Metadata(ctx context.Context, req resource.Metadat
 func (r *DeviceGroupResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
 		MarkdownDescription: "Device Group",
+		Version:             0,
 
 		Attributes: map[string]tfsdk.Attribute{
 			"id": {

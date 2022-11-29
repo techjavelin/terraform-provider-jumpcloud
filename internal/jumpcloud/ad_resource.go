@@ -45,6 +45,7 @@ func (r *ActiveDirectoryResource) Metadata(ctx context.Context, req resource.Met
 func (r *ActiveDirectoryResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
 		MarkdownDescription: "Active Directory",
+		Version:             0,
 
 		Attributes: map[string]tfsdk.Attribute{
 			"id": {
