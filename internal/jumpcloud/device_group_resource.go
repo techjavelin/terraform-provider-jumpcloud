@@ -26,7 +26,7 @@ func NewDeviceGroupResource() resource.Resource {
 }
 
 type DeviceGroupResource struct {
-	api *api.JumpCloudClientApi
+	api *api.JumpCloudClientApiV2
 }
 
 type DeviceGroupResourceModel struct {
@@ -65,7 +65,7 @@ func (r *DeviceGroupResource) Configure(ctx context.Context, req resource.Config
 		return
 	}
 
-	api, ok := req.ProviderData.(*api.JumpCloudClientApi)
+	api, ok := req.ProviderData.(JumpCloudApi)
 
 	if !ok {
 		resp.Diagnostics.AddError(
@@ -76,7 +76,7 @@ func (r *DeviceGroupResource) Configure(ctx context.Context, req resource.Config
 		return
 	}
 
-	r.api = api
+	r.api = &api.V2
 }
 
 func (r *DeviceGroupResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {

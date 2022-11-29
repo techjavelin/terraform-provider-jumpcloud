@@ -30,7 +30,7 @@ func NewActiveDirectoryResource() resource.Resource {
 }
 
 type ActiveDirectoryResource struct {
-	api *api.JumpCloudClientApi
+	api *api.JumpCloudClientApiV2
 }
 
 type ActiveDirectoryResourceModel struct {
@@ -69,7 +69,7 @@ func (r *ActiveDirectoryResource) Configure(ctx context.Context, req resource.Co
 		return
 	}
 
-	api, ok := req.ProviderData.(*api.JumpCloudClientApi)
+	api, ok := req.ProviderData.(JumpCloudApi)
 
 	if !ok {
 		resp.Diagnostics.AddError(
@@ -80,7 +80,7 @@ func (r *ActiveDirectoryResource) Configure(ctx context.Context, req resource.Co
 		return
 	}
 
-	r.api = api
+	r.api = &api.V2
 }
 
 func (r *ActiveDirectoryResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {

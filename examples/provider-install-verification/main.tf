@@ -2,6 +2,7 @@ terraform {
   required_providers {
     jumpcloud = {
       source = "techjavelin/jumpcloud"
+      version = "0.0.1"
     }
   }
 }
@@ -20,4 +21,8 @@ resource "jumpcloud_ad" "test_com" {
 
 resource "jumpcloud_devicegroup" "test" {
   name = "Test Group"
+}
+
+resource "jumpcloud_usergroup" "test" {
+    name = "Test Group"
 }

@@ -12,7 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/techjavelin/terraform-provider-jumpcloud/internal/pkg/jumpcloud/api"
+	"github.com/techjavelin/terraform-provider-jumpcloud/internal/pkg/jumpcloud/apiclient"
 
+	jcapiv1 "github.com/TheJumpCloud/jcapi-go/v1"
 	jcapiv2 "github.com/TheJumpCloud/jcapi-go/v2"
 )
 
@@ -25,6 +27,12 @@ type JumpCloudProvider struct {
 
 type JumpCloudProviderModel struct {
 	APIKey types.String `tfsdk:"api_key"`
+}
+
+type JumpCloudApi struct {
+	V1       api.JumpCloudClientApiV1
+	V2       api.JumpCloudClientApiV2
+	Internal apiclient.Client
 }
 
 func (p *JumpCloudProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
@@ -82,9 +90,16 @@ func (p *JumpCloudProvider) Configure(ctx context.Context, req provider.Configur
 		)
 	}
 
-	api := &api.JumpCloudClientApi{
-		Client: jcapiv2.NewAPIClient(jcapiv2.NewConfiguration()),
-		Auth:   context.WithValue(context.TODO(), jcapiv2.ContextAPIKey, jcapiv2.APIKey{Key: api_key}),
+	api := JumpCloudApi{
+		V1: api.JumpCloudClientApiV1{
+			Client: jcapiv1.NewAPIClient(jcapiv1.NewConfiguration()),
+			Auth:   context.WithValue(context.TODO(), jcapiv1.ContextAPIKey, jcapiv1.APIKey{Key: api_key}),
+		},
+		V2: api.JumpCloudClientApiV2{
+			Client: jcapiv2.NewAPIClient(jcapiv2.NewConfiguration()),
+			Auth:   context.WithValue(context.TODO(), jcapiv2.ContextAPIKey, jcapiv2.APIKey{Key: api_key}),
+		},
+		Internal: apiclient.New(ctx, api_key, p.version),
 	}
 
 	resp.DataSourceData = api

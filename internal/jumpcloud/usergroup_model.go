@@ -7,18 +7,29 @@ import (
 type UserGroupResourceModel struct {
 	Id                      types.String       `tfsdk:"id"`
 	Name                    types.String       `tfsdk:"name"`
-	SudoEnabled             types.Bool         `tfsdk:"sudo-enabled"`
-	SudoPasswordless        types.Bool         `tfsdk:"sudo-passwordless"`
-	LdapGroups              []types.String     `tfsdk:"ldap-groups"`
-	PosixGroups             []PosixGroupModel  `tfsdk:"posix-groups"`
-	RadiusReplies           []KVItemModel      `tfsdk:"radius-replies"`
-	SambaEnabled            types.Bool         `tfsdk:"samba-enabled"`
-	Properties              []KVItemModel      `tfsdk:"attribute-properties"`
+	Sudo                    *SudoConfigModel   `tfsdk:"sudo"`
+	Ldap                    *LdapInfo          `tfsdk:"ldap"`
+	PosixGroups             []PosixGroupModel  `tfsdk:"posix"`
+	RadiusReplies           []KVItemModel      `tfsdk:"radius"`
+	Samba                   *SambaConfig       `tfsdk:"samba"`
+	Properties              []KVItemModel      `tfsdk:"properties"`
 	Description             types.String       `tfsdk:"description"`
 	Email                   types.String       `tfsdk:"email"`
-	MemberQuery             []MemberQueryModel `tfsdk:"member-query"`
-	MemberSuggestionsNotify types.Bool         `tfsdk:"member-suggestions-notify"`
-	MembershipAutomated     types.Bool         `tfsdk:"membership-automated"`
+	MemberQuery             []MemberQueryModel `tfsdk:"member_queries"`
+	MemberSuggestionsNotify types.Bool         `tfsdk:"notify"`
+	MembershipAutomated     types.Bool         `tfsdk:"auto"`
+}
+
+type SambaConfig struct {
+	Enabled types.Bool `tfsdk:"enabled"`
+}
+
+type LdapInfo struct {
+	LdapGroups []LdapGroupModel `tfsdk:"groups"`
+}
+
+type LdapGroupModel struct {
+	Name types.String `tfsdk:"name"`
 }
 
 type MemberQueryModel struct {
@@ -30,4 +41,9 @@ type MemberQueryModel struct {
 type PosixGroupModel struct {
 	Id   types.Int64  `tfsdk:"id"`
 	Name types.String `tfsdk:"name"`
+}
+
+type SudoConfigModel struct {
+	Enabled      types.Bool `tfsdk:"enabled"`
+	Passwordless types.Bool `tfsdk:"passwordless"`
 }
