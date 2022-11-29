@@ -25,12 +25,12 @@ func NewDeviceGroupResource() resource.Resource {
 }
 
 type DeviceGroupResource struct {
-	api 	*JumpCloudClientApi
+	api *JumpCloudClientApi
 }
 
 type DeviceGroupResourceModel struct {
-	Id						types.String `tfsdk:"id"`
-	Name					types.String `tfsdk:"name"`
+	Id   types.String `tfsdk:"id"`
+	Name types.String `tfsdk:"name"`
 }
 
 func (r *DeviceGroupResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -43,8 +43,8 @@ func (r *DeviceGroupResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag
 
 		Attributes: map[string]tfsdk.Attribute{
 			"id": {
-				Computed			: true,
-				MarkdownDescription : "Resource ID (Computed / Read-Only)",
+				Computed:            true,
+				MarkdownDescription: "Resource ID (Computed / Read-Only)",
 				PlanModifiers: tfsdk.AttributePlanModifiers{
 					resource.UseStateForUnknown(),
 				},
@@ -52,8 +52,8 @@ func (r *DeviceGroupResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag
 			},
 			"name": {
 				MarkdownDescription: "Name for the Device Group",
-				Type: types.StringType,
-				Required: true,
+				Type:                types.StringType,
+				Required:            true,
 			},
 		},
 	}, nil
@@ -81,7 +81,7 @@ func (r *DeviceGroupResource) Configure(ctx context.Context, req resource.Config
 func (r *DeviceGroupResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan *DeviceGroupResourceModel
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx,&plan)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -106,7 +106,7 @@ func (r *DeviceGroupResource) Create(ctx context.Context, req resource.CreateReq
 		return
 	}
 
-	tflog.Trace(ctx, "JumpCloud API Response: \n" + spew.Sdump(response))
+	tflog.Trace(ctx, "JumpCloud API Response: \n"+spew.Sdump(response))
 	tflog.Info(ctx, fmt.Sprintf("Created new Device Group\n%s", spew.Sdump(group)))
 
 	plan.Id = types.StringValue(group.Id)
@@ -128,7 +128,7 @@ func (r *DeviceGroupResource) Read(ctx context.Context, req resource.ReadRequest
 	}
 
 	tflog.Info(ctx, "Refreshing Device Group State from JumpCloud")
-	
+
 	group, response, error := r.api.client.SystemGroupsApi.GroupsSystemGet(r.api.auth, state.Id.ValueString(), API_CONTENT_TYPE, API_ACCEPT_TYPE, nil)
 	if error != nil {
 		resp.Diagnostics.AddError(
@@ -139,7 +139,7 @@ func (r *DeviceGroupResource) Read(ctx context.Context, req resource.ReadRequest
 		return
 	}
 
-	tflog.Trace(ctx, "JumpCloud API Response: \n" + spew.Sdump(response))
+	tflog.Trace(ctx, "JumpCloud API Response: \n"+spew.Sdump(response))
 
 	state.Name = types.StringValue(group.Name)
 
@@ -154,12 +154,12 @@ func (r *DeviceGroupResource) Update(ctx context.Context, req resource.UpdateReq
 }
 
 func (r *DeviceGroupResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-    var state DeviceGroupResourceModel
-    diags := req.State.Get(ctx, &state)
-    resp.Diagnostics.Append(diags...)
-    if resp.Diagnostics.HasError() {
-        return
-    }
+	var state DeviceGroupResourceModel
+	diags := req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	response, error := r.api.client.SystemGroupsApi.GroupsSystemDelete(r.api.auth, state.Id.ValueString(), API_CONTENT_TYPE, API_ACCEPT_TYPE, nil)
 	if error != nil {
@@ -170,7 +170,7 @@ func (r *DeviceGroupResource) Delete(ctx context.Context, req resource.DeleteReq
 
 		return
 	}
-	tflog.Trace(ctx, "JumpCloud API Response: \n" + spew.Sdump(response))
+	tflog.Trace(ctx, "JumpCloud API Response: \n"+spew.Sdump(response))
 
 }
 

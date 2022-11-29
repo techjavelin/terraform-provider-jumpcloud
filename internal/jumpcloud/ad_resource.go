@@ -25,12 +25,12 @@ func NewActiveDirectoryResource() resource.Resource {
 }
 
 type ActiveDirectoryResource struct {
-	api 	*JumpCloudClientApi
+	api *JumpCloudClientApi
 }
 
 type ActiveDirectoryResourceModel struct {
-	Domain				 	types.String `tfsdk:"domain"`
-	Id						types.String `tfsdk:"id"`
+	Domain types.String `tfsdk:"domain"`
+	Id     types.String `tfsdk:"id"`
 }
 
 func (r *ActiveDirectoryResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -43,17 +43,17 @@ func (r *ActiveDirectoryResource) GetSchema(ctx context.Context) (tfsdk.Schema, 
 
 		Attributes: map[string]tfsdk.Attribute{
 			"id": {
-				Computed			: true,
-				MarkdownDescription : "Resource ID (Computed / Read-Only)",
+				Computed:            true,
+				MarkdownDescription: "Resource ID (Computed / Read-Only)",
 				PlanModifiers: tfsdk.AttributePlanModifiers{
 					resource.UseStateForUnknown(),
 				},
 				Type: types.StringType,
 			},
 			"domain": {
-				MarkdownDescription : "The Active Directory Domain (eg DC=mydomain,DC=com}",
-				Required			: true,
-				Type				: types.StringType,
+				MarkdownDescription: "The Active Directory Domain (eg DC=mydomain,DC=com}",
+				Required:            true,
+				Type:                types.StringType,
 			},
 		},
 	}, nil
@@ -81,7 +81,7 @@ func (r *ActiveDirectoryResource) Configure(ctx context.Context, req resource.Co
 func (r *ActiveDirectoryResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan *ActiveDirectoryResourceModel
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx,&plan)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -106,7 +106,7 @@ func (r *ActiveDirectoryResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
-	tflog.Trace(ctx, "JumpCloud API Response: \n" + spew.Sdump(response))
+	tflog.Trace(ctx, "JumpCloud API Response: \n"+spew.Sdump(response))
 	tflog.Info(ctx, fmt.Sprintf("Created new Active Directory\n%s", spew.Sdump(ad)))
 
 	plan.Id = types.StringValue(ad.Id)
@@ -128,7 +128,7 @@ func (r *ActiveDirectoryResource) Read(ctx context.Context, req resource.ReadReq
 	}
 
 	tflog.Info(ctx, "Refreshing Active Directory State from JumpCloud")
-	
+
 	ad, response, error := r.api.client.ActiveDirectoryApi.ActivedirectoriesGet(r.api.auth, state.Id.ValueString(), API_CONTENT_TYPE, API_ACCEPT_TYPE, nil)
 	if error != nil {
 		resp.Diagnostics.AddError(
@@ -139,7 +139,7 @@ func (r *ActiveDirectoryResource) Read(ctx context.Context, req resource.ReadReq
 		return
 	}
 
-	tflog.Trace(ctx, "JumpCloud API Response: \n" + spew.Sdump(response))
+	tflog.Trace(ctx, "JumpCloud API Response: \n"+spew.Sdump(response))
 
 	state.Domain = types.StringValue(ad.Domain)
 
@@ -160,12 +160,12 @@ func (r *ActiveDirectoryResource) Update(ctx context.Context, req resource.Updat
 }
 
 func (r *ActiveDirectoryResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-    var state ActiveDirectoryResourceModel
-    diags := req.State.Get(ctx, &state)
-    resp.Diagnostics.Append(diags...)
-    if resp.Diagnostics.HasError() {
-        return
-    }
+	var state ActiveDirectoryResourceModel
+	diags := req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	response, error := r.api.client.ActiveDirectoryApi.ActivedirectoriesDelete(r.api.auth, state.Id.ValueString(), API_CONTENT_TYPE, API_ACCEPT_TYPE, nil)
 	if error != nil {
@@ -176,7 +176,7 @@ func (r *ActiveDirectoryResource) Delete(ctx context.Context, req resource.Delet
 
 		return
 	}
-	tflog.Trace(ctx, "JumpCloud API Response: \n" + spew.Sdump(response))
+	tflog.Trace(ctx, "JumpCloud API Response: \n"+spew.Sdump(response))
 
 }
 
