@@ -10,7 +10,7 @@ jobs:
     steps:
       - name: security // contrast // checkout
         uses: actions/checkout@v3
-        
+
       - name: security // contrast // dependency-check
         uses: Contrast-Security-OSS/contrast-sca-action@v1
         with: 
@@ -20,4 +20,4 @@ jobs:
           apiUrl: ${{ secrets.CONTRAST_API_URL }}
           filePath: go.mod
           severity: medium
-          fail: false
+          fail: true
