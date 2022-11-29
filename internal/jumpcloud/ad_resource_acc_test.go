@@ -17,17 +17,19 @@ func TestAccActiveDirectoryResource(t *testing.T) {
 
 	test_env = makeFriendlyName(test_env)
 
+	domain := fmt.Sprintf("DC=%s,DC=test,DC=com", test_env)
+
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: providerConfig + `
 resource "jumpcloud_ad" "test" {
-	domain = "DC=test,DC=com"
+	domain = "` + domain + `"
 }
 `,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("jumpcloud_ad.test", "domain", fmt.Sprintf("DC=%sDC=test,DC=com", test_env)),
+					resource.TestCheckResourceAttr("jumpcloud_ad.test", "domain", domain),
 					resource.TestCheckResourceAttrSet("jumpcloud_ad.test", "id"),
 				),
 			},
