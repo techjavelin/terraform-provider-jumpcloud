@@ -6,12 +6,11 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/path"
-
 
 	jcapiv2 "github.com/TheJumpCloud/jcapi-go/v2"
 )
@@ -23,16 +22,16 @@ var _ provider.Provider = &JumpCloudProvider{}
 var _ provider.ProviderWithMetadata = &JumpCloudProvider{}
 
 type JumpCloudProvider struct {
-	version 	string
+	version string
 }
 
 type JumpCloudProviderModel struct {
-	APIKey		types.String `tfsdk:"api_key"`
+	APIKey types.String `tfsdk:"api_key"`
 }
 
 type JumpCloudClientApi struct {
-	client		*jcapiv2.APIClient
-	auth		context.Context
+	client *jcapiv2.APIClient
+	auth   context.Context
 }
 
 func (p *JumpCloudProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
@@ -44,10 +43,10 @@ func (p *JumpCloudProvider) GetSchema(ctx context.Context) (tfsdk.Schema, diag.D
 	return tfsdk.Schema{
 		Attributes: map[string]tfsdk.Attribute{
 			"api_key": {
-				MarkdownDescription	: "API Key Used to connect to the JumpCloud API",
-				Required			: true,
-				Type				: types.StringType,
-				Sensitive			: true,
+				MarkdownDescription: "API Key Used to connect to the JumpCloud API",
+				Required:            true,
+				Type:                types.StringType,
+				Sensitive:           true,
 			},
 		},
 	}, nil
@@ -85,14 +84,14 @@ func (p *JumpCloudProvider) Configure(ctx context.Context, req provider.Configur
 			path.Root("api_key"),
 			"Missing JumpCloud API Key",
 			"The provider cannot create the JumpCloud API client due to a missing or empty value for the JumpCloud API Key. "+
-				"Set the api_key value in the configuration or use the JUMPCLOUD_API_KEY environment varibale. "+
+				"Set the api_key value in the configuration or use the JUMPCLOUD_API_KEY environment variable. "+
 				"If either is already set, ensure the value is not empty.",
 		)
 	}
 
 	api := &JumpCloudClientApi{
-		client : jcapiv2.NewAPIClient(jcapiv2.NewConfiguration()),
-		auth   : context.WithValue(context.TODO(), jcapiv2.ContextAPIKey, jcapiv2.APIKey{ Key: api_key }),
+		client: jcapiv2.NewAPIClient(jcapiv2.NewConfiguration()),
+		auth:   context.WithValue(context.TODO(), jcapiv2.ContextAPIKey, jcapiv2.APIKey{Key: api_key}),
 	}
 
 	resp.DataSourceData = api
@@ -107,9 +106,7 @@ func (p *JumpCloudProvider) Resources(ctx context.Context) []func() resource.Res
 }
 
 func (p *JumpCloudProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
-	return []func() datasource.DataSource{
-		
-	}
+	return []func() datasource.DataSource{}
 }
 
 func New(version string) func() provider.Provider {
