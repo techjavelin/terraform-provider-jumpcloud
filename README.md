@@ -18,6 +18,7 @@ The JumpCloud Terraform Provider is an unofficial plugin for managing your JumpC
 * [Provider - jumpcloud](docs/index.md)
 * [Resource - jumpcloud_ad](docs/resources/ad.md)
 * [Resource - jumpcloud_devicegroup](docs/resources/devicegroup.md)
+* [Resource - jumpcloud_usergroup](docs/resources/usergroup.md)
 
 ### Requirements
 

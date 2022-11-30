@@ -124,7 +124,7 @@ verify/destroy:
 
 verify/cleanup:
 	@echo "-=-=-=-=-=-=] cleanup [=-=-=-=-=-=-"
-	rm -rf $(VERIFY_PATH)/.terraform $(VERIFY_PATH)/.terraform.lock.hcl $(VERIFY_PATH)/terraform.tfstate $(VERIFY_PATH)/terraform.tfstate* $(VERIFY_PATH)/main.tf
+	rm -rf $(VERIFY_PATH)/.terraform $(VERIFY_PATH)/.terraform.lock.hcl $(VERIFY_PATH)/terraform.tfstate $(VERIFY_PATH)/terraform.tfstate* $(VERIFY_PATH)/main.tf $(VERIFY_LOG_FILE) $(VERIFY_PATH)terraform.tfplan
 
 build/debug:
 	go build $(debug_flags)
