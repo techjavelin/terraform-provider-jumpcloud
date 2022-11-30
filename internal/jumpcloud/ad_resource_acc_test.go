@@ -2,7 +2,7 @@ package jumpcloud
 
 import (
 	"fmt"
-	"os"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -15,14 +15,7 @@ resource "jumpcloud_ad" "test" {
 `
 
 func TestAccActiveDirectoryResource(t *testing.T) {
-
-	test_env := os.Getenv("TF_VAR_test_env")
-	if len(test_env) == 0 {
-		test_env = "default"
-	}
-
-	test_env = makeFriendlyName(test_env)
-
+	test_env := GetTestEnv()
 	domain := fmt.Sprintf("DC=%s,DC=test,DC=com", test_env)
 
 	resource.Test(t, resource.TestCase{
@@ -30,7 +23,7 @@ func TestAccActiveDirectoryResource(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Create and Read Testing
 			{
-				Config: providerConfig + `
+				Config: ProviderConfig() + `
 resource "jumpcloud_ad" "test" {
 	domain = "` + domain + `"
 }

@@ -17,18 +17,13 @@ var testAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServe
 	"jumpcloud": providerserver.NewProtocol6WithError(New("dev")()),
 }
 
-func makeFriendlyName(name string) (out string) {
-	out = strings.ReplaceAll(name, ".", "-")
-	out = strings.ReplaceAll(out, "*", "x")
-	return out
-}
-
-func TestMakeFriendlyName(t *testing.T) {
-	expect := "1-2-x"
-	test := makeFriendlyName("1.2.*")
-	if test != expect {
-		t.Fatalf("Expected %s but got %s", expect, test)
+func GetTestEnv() string {
+	test_env := os.Getenv("TF_VAR_test_env")
+	if len(test_env) == 0 {
+		test_env = "default"
 	}
+
+	return makeFriendlyName(test_env)
 }
 
 func makeFriendlyName(name string) (out string) {
