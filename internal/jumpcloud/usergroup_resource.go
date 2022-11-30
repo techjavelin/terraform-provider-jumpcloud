@@ -132,9 +132,9 @@ func (r *UserGroupResource) Read(ctx context.Context, req resource.ReadRequest, 
 
 func (r *UserGroupResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	tflog.Debug(ctx, "Updating UserGroupResource")
-	var plan *UserGroupResourceModel
+	var updatePlan *UserGroupResourceModel
 
-	diags := req.State.Get(ctx, &plan)
+	diags := req.Plan.Get(ctx, &updatePlan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		tflog.Error(ctx, "Got Error while trying to set plan")
@@ -142,17 +142,17 @@ func (r *UserGroupResource) Update(ctx context.Context, req resource.UpdateReque
 	}
 
 	tflog.Trace(ctx, "Evaluated Plan", map[string]interface{}{
-		"UserGroupResourceModel": spew.Sdump(plan),
+		"UserGroupResourceModel": spew.Sdump(updatePlan),
 	})
 
 	tflog.Info(ctx, "Refreshing User Group State from JumpCloud")
-	usergroup := convertResourceToUserGroup(ctx, plan)
+	apiModel := convertResourceToUserGroup(ctx, updatePlan)
 
-	group, response, error := r.api.UpdateUserGroup(&usergroup)
+	updatedApiModel, response, error := r.api.UpdateUserGroup(&apiModel)
 
 	tflog.Trace(ctx, "Got response from JumpCloud API", map[string]interface{}{
 		"Response":  r.api.ReadBody(response.Body),
-		"UserGroup": spew.Sdump(group),
+		"UserGroup": spew.Sdump(updatedApiModel),
 		"Error":     spew.Sdump(error),
 	})
 
@@ -165,9 +165,9 @@ func (r *UserGroupResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	r.convertApiResponseToResource(ctx, plan, &group)
+	r.convertApiResponseToResource(ctx, updatePlan, &updatedApiModel)
 
-	diags = resp.State.Set(ctx, plan)
+	diags = resp.State.Set(ctx, updatePlan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -201,46 +201,38 @@ func (r *UserGroupResource) ImportState(ctx context.Context, req resource.Import
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-func getStringValueIfNotNil(val *string) types.String {
-	if val != nil {
-		return types.StringValue(*val)
-	}
+func (r *UserGroupResource) convertApiResponseToResource(ctx context.Context, resourceModel *UserGroupResourceModel, apiModel *apiclient.UserGroup) (diags diag.Diagnostics) {
+	resourceModel.Id = types.StringValue(apiModel.Id)
+	resourceModel.Name = types.StringValue(apiModel.Name)
+	resourceModel.Description = types.StringValue(apiModel.Description)
+	resourceModel.Email = types.StringValue(apiModel.Email)
+	resourceModel.MemberSuggestionsNotify = types.BoolValue(apiModel.MemberSuggestionsNotify)
+	resourceModel.MembershipAutomated = types.BoolValue(apiModel.MembershipAutomated)
 
-	return types.StringNull()
-}
-
-func (r *UserGroupResource) convertApiResponseToResource(ctx context.Context, plan *UserGroupResourceModel, group *apiclient.UserGroup) (diags diag.Diagnostics) {
-	plan.Id = types.StringValue(group.Id)
-	plan.Name = types.StringValue(group.Name)
-	plan.Description = types.StringValue(group.Description)
-	plan.Email = types.StringValue(group.Email)
-	plan.MemberSuggestionsNotify = types.BoolValue(group.MemberSuggestionsNotify)
-	plan.MembershipAutomated = types.BoolValue(group.MembershipAutomated)
-
-	if group.Attributes != nil {
-		if group.Attributes.SambaEnabled {
-			plan.Samba.Enabled = types.BoolValue(group.Attributes.SambaEnabled)
+	if apiModel.Attributes != nil {
+		if apiModel.Attributes.SambaEnabled {
+			resourceModel.Samba.Enabled = types.BoolValue(apiModel.Attributes.SambaEnabled)
 		}
 
-		if group.Attributes.Sudo != nil {
-			plan.Sudo.Enabled = types.BoolValue(group.Attributes.Sudo.Enabled)
-			plan.Sudo.Passwordless = types.BoolValue(group.Attributes.Sudo.WithoutPassword)
+		if apiModel.Attributes.Sudo != nil {
+			resourceModel.Sudo.Enabled = types.BoolValue(apiModel.Attributes.Sudo.Enabled)
+			resourceModel.Sudo.Passwordless = types.BoolValue(apiModel.Attributes.Sudo.WithoutPassword)
 		}
 
-		for _, ldapGroup := range group.Attributes.LdapGroups {
+		for _, ldapGroup := range apiModel.Attributes.LdapGroups {
 			var ldapInfo LdapInfo
-			if plan.Ldap.IsNull() || plan.Ldap.IsUnknown() {
+			if resourceModel.Ldap.IsNull() || resourceModel.Ldap.IsUnknown() {
 				ldapInfo = LdapInfo{}
 			} else {
-				diags := plan.Ldap.As(ctx, ldapInfo, types.ObjectAsOptions{
+				diags := resourceModel.Ldap.As(ctx, ldapInfo, types.ObjectAsOptions{
 					UnhandledNullAsEmpty:    true,
 					UnhandledUnknownAsEmpty: true,
 				})
 
 				if diags.HasError() {
 					tflog.Error(ctx, "Encountered error attempting to retrieve LdapInfo as Object from Type", map[string]interface{}{
-						"IsNull":    plan.Ldap.IsNull(),
-						"IsUnknown": plan.Ldap.IsUnknown(),
+						"IsNull":    resourceModel.Ldap.IsNull(),
+						"IsUnknown": resourceModel.Ldap.IsUnknown(),
 					})
 					return diags
 				}
@@ -261,19 +253,19 @@ func (r *UserGroupResource) convertApiResponseToResource(ctx context.Context, pl
 				return diags
 			}
 
-			plan.Ldap = ldap
+			resourceModel.Ldap = ldap
 		}
 
-		for _, posixGroup := range group.Attributes.PosixGroups {
-			plan.PosixGroups = append(plan.PosixGroups, PosixGroupModel{
+		for _, posixGroup := range apiModel.Attributes.PosixGroups {
+			resourceModel.PosixGroups = append(resourceModel.PosixGroups, PosixGroupModel{
 				Id:   types.Int64Value(posixGroup.Id),
 				Name: types.StringValue(posixGroup.Name),
 			})
 		}
 
-		if group.Attributes.Radius != nil {
-			for _, radiusReply := range group.Attributes.Radius.Reply {
-				plan.RadiusReplies = append(plan.RadiusReplies, KVItemModel{
+		if apiModel.Attributes.Radius != nil {
+			for _, radiusReply := range apiModel.Attributes.Radius.Reply {
+				resourceModel.RadiusReplies = append(resourceModel.RadiusReplies, KVItemModel{
 					Name:  types.StringValue(radiusReply.Name),
 					Value: types.StringValue(radiusReply.Value),
 				})
@@ -281,9 +273,9 @@ func (r *UserGroupResource) convertApiResponseToResource(ctx context.Context, pl
 		}
 	}
 
-	if group.MemberQuery != nil && len(group.MemberQuery.Filters) > 0 {
-		for _, filter := range group.MemberQuery.Filters {
-			plan.MemberQuery = append(plan.MemberQuery, MemberQueryModel{
+	if apiModel.MemberQuery != nil && len(apiModel.MemberQuery.Filters) > 0 {
+		for _, filter := range apiModel.MemberQuery.Filters {
+			resourceModel.MemberQuery = append(resourceModel.MemberQuery, MemberQueryModel{
 				Field:    types.StringValue(filter.Field),
 				Operator: types.StringValue(filter.Operator),
 				Value:    types.StringValue(filter.Value),
@@ -291,34 +283,25 @@ func (r *UserGroupResource) convertApiResponseToResource(ctx context.Context, pl
 		}
 	}
 
-	tflog.Trace(ctx, fmt.Sprintf("Converted UserGroup to UserGroupResourceModel:\n\tUserGroup: %s\n\tUserGroupResourceModel: %s", spew.Sdump(group), spew.Sdump(plan)))
+	tflog.Trace(ctx, fmt.Sprintf("Converted UserGroup to UserGroupResourceModel:\n\tUserGroup: %s\n\tUserGroupResourceModel: %s", spew.Sdump(apiModel), spew.Sdump(resourceModel)))
 
 	return diags
 }
 
-func getStringIfAttributeNotNil(in types.String) *string {
-	if in.IsNull() {
-		return nil
-	}
-
-	out := in.ValueString()
-	return &out
-}
-
-func convertResourceToUserGroup(ctx context.Context, plan *UserGroupResourceModel) apiclient.UserGroup {
+func convertResourceToUserGroup(ctx context.Context, resourceModel *UserGroupResourceModel) apiclient.UserGroup {
 	var sudoConfig *apiclient.UserGroupSudoConfig
-	if plan.Sudo != nil {
+	if resourceModel.Sudo != nil {
 		sudoConfig = &apiclient.UserGroupSudoConfig{
-			Enabled:         plan.Sudo.Enabled.ValueBool(),
-			WithoutPassword: plan.Sudo.Passwordless.ValueBool(),
+			Enabled:         resourceModel.Sudo.Enabled.ValueBool(),
+			WithoutPassword: resourceModel.Sudo.Passwordless.ValueBool(),
 		}
 	}
 
 	var ldapGroups []apiclient.LdapGroup
 
-	if !plan.Ldap.IsNull() {
+	if !resourceModel.Ldap.IsNull() {
 		var ldapInfo LdapInfo
-		plan.Ldap.As(ctx, ldapInfo, types.ObjectAsOptions{
+		resourceModel.Ldap.As(ctx, ldapInfo, types.ObjectAsOptions{
 			UnhandledNullAsEmpty:    true,
 			UnhandledUnknownAsEmpty: true,
 		})
@@ -331,7 +314,7 @@ func convertResourceToUserGroup(ctx context.Context, plan *UserGroupResourceMode
 	}
 
 	var posixGroups []apiclient.PosixGroup
-	for _, posix_group := range plan.PosixGroups {
+	for _, posix_group := range resourceModel.PosixGroups {
 		posixGroups = append(posixGroups, apiclient.PosixGroup{
 			Id:   posix_group.Id.ValueInt64(),
 			Name: posix_group.Name.ValueString(),
@@ -340,7 +323,7 @@ func convertResourceToUserGroup(ctx context.Context, plan *UserGroupResourceMode
 
 	var radiusConfig *apiclient.UserGroupRadiusConfig
 	var radiusReplies []apiclient.RadiusReply
-	for _, reply := range plan.RadiusReplies {
+	for _, reply := range resourceModel.RadiusReplies {
 		radiusReplies = append(radiusReplies, apiclient.RadiusReply{
 			Name:  reply.Name.ValueString(),
 			Value: reply.Value.ValueString(),
@@ -354,8 +337,8 @@ func convertResourceToUserGroup(ctx context.Context, plan *UserGroupResourceMode
 	}
 
 	var sambaEnabled bool
-	if plan.Samba != nil {
-		sambaEnabled = plan.Samba.Enabled.Equal(types.BoolValue(true))
+	if resourceModel.Samba != nil {
+		sambaEnabled = resourceModel.Samba.Enabled.Equal(types.BoolValue(true))
 	}
 
 	var attributes *apiclient.UserGroupAttributes
@@ -371,8 +354,8 @@ func convertResourceToUserGroup(ctx context.Context, plan *UserGroupResourceMode
 
 	var memberQuery *apiclient.UserGroupMemberQuery
 	var filterQueries []apiclient.QueryFilter
-	if len(plan.MemberQuery) > 0 {
-		for _, query := range plan.MemberQuery {
+	if len(resourceModel.MemberQuery) > 0 {
+		for _, query := range resourceModel.MemberQuery {
 			filterQueries = append(filterQueries, apiclient.QueryFilter{
 				Field:    query.Field.ValueString(),
 				Operator: query.Operator.ValueString(),
@@ -386,19 +369,19 @@ func convertResourceToUserGroup(ctx context.Context, plan *UserGroupResourceMode
 		}
 	}
 
-	usergroup := apiclient.UserGroup{
-		Id:          plan.Id.ValueString(),
-		Name:        plan.Name.ValueString(),
+	apiModel := apiclient.UserGroup{
+		Id:          resourceModel.Id.ValueString(),
+		Name:        resourceModel.Name.ValueString(),
 		MemberQuery: memberQuery,
 		Attributes:  attributes,
 	}
 
-	usergroup.Description = plan.Description.ValueString()
-	usergroup.Email = plan.Description.ValueString()
+	apiModel.Description = resourceModel.Description.ValueString()
+	apiModel.Email = resourceModel.Email.ValueString()
 
-	usergroup.MemberSuggestionsNotify = plan.MemberSuggestionsNotify.ValueBool()
-	usergroup.MembershipAutomated = plan.MembershipAutomated.ValueBool()
+	apiModel.MemberSuggestionsNotify = resourceModel.MemberSuggestionsNotify.ValueBool()
+	apiModel.MembershipAutomated = resourceModel.MembershipAutomated.ValueBool()
 
-	tflog.Info(ctx, fmt.Sprintf("Converted UserGroupResourceModel to UserGroup:\n\tUserGroup: %s\n\tUserGroupResourceModel: %s", spew.Sdump(usergroup), spew.Sdump(plan)))
-	return usergroup
+	tflog.Info(ctx, fmt.Sprintf("Converted UserGroupResourceModel to UserGroup:\n\tUserGroup: %s\n\tUserGroupResourceModel: %s", spew.Sdump(apiModel), spew.Sdump(resourceModel)))
+	return apiModel
 }

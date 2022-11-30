@@ -104,8 +104,8 @@ verify/import:
 
 verify/update:
 	@echo "-=-=-=-=-=-=] update [=-=-=-=-=-=-" 
-	cp $(VERIFY_PATH)/main.update $(VERIFY_PATH)/main.tf && \
-	op run -- $(TERRAFORM_BIN) -chdir=$(VERIFY_PATH) apply --auto-approve terraform.tfplan
+	cp $(VERIFY_PATH)/main.update $(VERIFY_PATH)/main.tf
+	@make verify/init verify/prepare verify/apply
 
 verify/apply:
 	@echo "-=-=-=-=-=-=] apply [=-=-=-=-=-=-"
