@@ -7,10 +7,11 @@ ONEPASSWORD_SIGNIN	?=
 # These can be overridden at any time on the env
 VERIFY_LOG_PRIORITY ?= INFO
 VERIFY_LOG_FILE		?= $(VERIFY_PATH)/terraform-verify.log
+VERIFY_RESOURCE     ?=
 
 # Only modify these if you know wtf you're doing
 TERRAFORM_BIN		?= $(shell which terraform)
-VERIFY_PATH			?= examples/provider-install-verification
+VERIFY_PATH			?= verify/$(VERIFY_RESOURCE)
 
 provider_registry	:= registry.terraform.io
 provider_group 		:= techjavelin
@@ -66,16 +67,40 @@ verify_prepare:
 	export TF_LOG_PATH=$(VERIFY_LOG_FILE) && \
 	op run -- $(TERRAFORM_BIN) -chdir=$(VERIFY_PATH) state refresh 
 	
-verify: install verify_cleanup
+verify: install
+	make verify/add
+	make verify/import
+	make verify/destroy
+
+verify/nodestroy: install
+	make verify/add
+	make verify/import
+
+verify/add: install verify_cleanup
 	export TF_VAR_jumpcloud_api_key=$(jumpcloud_api_key) && \
 	export TF_LOG=$(VERIFY_LOG_PRIORITY) && \
 	export TF_LOG_PATH=$(VERIFY_LOG_FILE) && \
 	echo "-=-=-=-=-=-=] init [=-=-=-=-=-=-" && op run -- $(TERRAFORM_BIN) -chdir=$(VERIFY_PATH) init && \
 	echo "-=-=-=-=-=-=] plan [=-=-=-=-=-=-" && op run -- $(TERRAFORM_BIN) -chdir=$(VERIFY_PATH) plan -out=/tmp/tfplan && \
-	echo "-=-=-=-=-=-=] apply [=-=-=-=-=-=-" && op run -- $(TERRAFORM_BIN) -chdir=$(VERIFY_PATH) apply --auto-approve /tmp/tfplan && \
+	echo "-=-=-=-=-=-=] apply [=-=-=-=-=-=-" && op run -- $(TERRAFORM_BIN) -chdir=$(VERIFY_PATH) apply --auto-approve /tmp/tfplan 
+
+verify/import: 
+	export TF_VAR_jumpcloud_api_key=$(jumpcloud_api_key) && \
+	export TF_LOG=$(VERIFY_LOG_PRIORITY) && \
+	export TF_LOG_PATH=$(VERIFY_LOG_FILE) && \
+	echo "-=-=-=-=-=-=] import [=-=-=-=-=-=-" && \
+	export RESOURCE_ID=`$(TERRAFORM_BIN) -chdir=$(VERIFY_PATH) state show "$(VERIFY_RESOURCE).test" | grep id | head -n1 | grep id | cut -d'=' -f2 | cut -d'"' -f2` && \
+	op run -- $(TERRAFORM_BIN) -chdir=$(VERIFY_PATH) state rm "$(VERIFY_RESOURCE).test" && \
+	echo "Resource ID: $$RESOURCE_ID" && \
+	op run -- $(TERRAFORM_BIN) -chdir=$(VERIFY_PATH) import "$(VERIFY_RESOURCE).test" $$RESOURCE_ID 
+
+verify/destroy:
+	export TF_VAR_jumpcloud_api_key=$(jumpcloud_api_key) && \
+	export TF_LOG=$(VERIFY_LOG_PRIORITY) && \
+	export TF_LOG_PATH=$(VERIFY_LOG_FILE) && \
 	echo "-=-=-=-=-=-=] destroy [=-=-=-=-=-=-" && op run -- $(TERRAFORM_BIN) -chdir=$(VERIFY_PATH) destroy --auto-approve
 
-verify_cleanup:
+verify/cleanup:
 	rm -rf $(VERIFY_PATH)/.terraform $(VERIFY_PATH)/.terraform.lock.hcl $(VERIFY_PATH)/terraform.tfstate $(VERIFY_PATH)/terraform.tfstate.backup 
 
 build/debug:

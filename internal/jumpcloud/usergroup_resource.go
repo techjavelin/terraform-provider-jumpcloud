@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -17,6 +18,7 @@ import (
 
 // Ensure provider defined types fully satisfy framework interfaces
 var _ resource.Resource = &UserGroupResource{}
+var _ resource.ResourceWithImportState = &UserGroupResource{}
 var _ resource.ResourceWithImportState = &UserGroupResource{}
 
 func NewUserGroupResource() resource.Resource {
@@ -187,6 +189,7 @@ func (r *UserGroupResource) Delete(ctx context.Context, req resource.DeleteReque
 }
 
 func (r *UserGroupResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
 func getStringValueIfNotNil(val *string) types.String {
