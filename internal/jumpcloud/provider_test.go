@@ -1,6 +1,7 @@
 package jumpcloud
 
 import (
+	"os"
 	"strings"
 	"testing"
 
@@ -8,20 +9,22 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 )
 
-const (
-	providerConfig = `
-variable "jumpcloud_api_key" {}
-provider "jumpcloud" {
-	api_key = "${ var.jumpcloud_api_key }"
+func ProviderConfig() string {
+	return "provider \"jumpcloud\" { api_key = \"" + os.Getenv("JUMPCLOUD_API_KEY") + "\" }\n"
 }
-`
-)
 
-var (
-	testAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){
-		"jumpcloud": providerserver.NewProtocol6WithError(New("dev")()),
+var testAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){
+	"jumpcloud": providerserver.NewProtocol6WithError(New("dev")()),
+}
+
+func GetTestEnv() string {
+	test_env := os.Getenv("TEST_ENV")
+	if len(test_env) == 0 {
+		test_env = "default"
 	}
-)
+
+	return makeFriendlyName(test_env)
+}
 
 func makeFriendlyName(name string) (out string) {
 	out = strings.ReplaceAll(name, ".", "-")

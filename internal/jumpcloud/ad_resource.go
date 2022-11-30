@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/techjavelin/terraform-provider-jumpcloud/internal/pkg/jumpcloud/api"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	// "github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -17,15 +19,18 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ resource.Resource = &ActiveDirectoryResource{}
-var _ resource.ResourceWithImportState = &ActiveDirectoryResource{}
+var (
+	_ resource.Resource                = &ActiveDirectoryResource{}
+	_ resource.ResourceWithConfigure   = &ActiveDirectoryResource{}
+	_ resource.ResourceWithImportState = &ActiveDirectoryResource{}
+)
 
 func NewActiveDirectoryResource() resource.Resource {
 	return &ActiveDirectoryResource{}
 }
 
 type ActiveDirectoryResource struct {
-	api *JumpCloudClientApi
+	api *api.JumpCloudClientApiV2
 }
 
 type ActiveDirectoryResourceModel struct {
@@ -40,6 +45,7 @@ func (r *ActiveDirectoryResource) Metadata(ctx context.Context, req resource.Met
 func (r *ActiveDirectoryResource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
 		MarkdownDescription: "Active Directory",
+		Version:             0,
 
 		Attributes: map[string]tfsdk.Attribute{
 			"id": {
@@ -64,7 +70,7 @@ func (r *ActiveDirectoryResource) Configure(ctx context.Context, req resource.Co
 		return
 	}
 
-	api, ok := req.ProviderData.(*JumpCloudClientApi)
+	api, ok := req.ProviderData.(JumpCloudApi)
 
 	if !ok {
 		resp.Diagnostics.AddError(
@@ -75,7 +81,7 @@ func (r *ActiveDirectoryResource) Configure(ctx context.Context, req resource.Co
 		return
 	}
 
-	r.api = api
+	r.api = &api.V2
 }
 
 func (r *ActiveDirectoryResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -96,7 +102,7 @@ func (r *ActiveDirectoryResource) Create(ctx context.Context, req resource.Creat
 
 	tflog.Info(ctx, fmt.Sprintf("Calling ActiveDirectoriesPost with\n%s", spew.Sdump(options)))
 
-	ad, response, error := r.api.client.ActiveDirectoryApi.ActivedirectoriesPost(r.api.auth, API_ACCEPT_TYPE, API_CONTENT_TYPE, options)
+	ad, response, error := r.api.Client.ActiveDirectoryApi.ActivedirectoriesPost(r.api.Auth, api.API_ACCEPT_TYPE, api.API_CONTENT_TYPE, options)
 
 	if error != nil {
 		resp.Diagnostics.AddError(
@@ -129,7 +135,7 @@ func (r *ActiveDirectoryResource) Read(ctx context.Context, req resource.ReadReq
 
 	tflog.Info(ctx, "Refreshing Active Directory State from JumpCloud")
 
-	ad, response, error := r.api.client.ActiveDirectoryApi.ActivedirectoriesGet(r.api.auth, state.Id.ValueString(), API_CONTENT_TYPE, API_ACCEPT_TYPE, nil)
+	ad, response, error := r.api.Client.ActiveDirectoryApi.ActivedirectoriesGet(r.api.Auth, state.Id.ValueString(), api.API_CONTENT_TYPE, api.API_ACCEPT_TYPE, nil)
 	if error != nil {
 		resp.Diagnostics.AddError(
 			"Error retreiving Active Directory from JumpCloud",
@@ -145,6 +151,7 @@ func (r *ActiveDirectoryResource) Read(ctx context.Context, req resource.ReadReq
 
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -155,8 +162,6 @@ func (r *ActiveDirectoryResource) Update(ctx context.Context, req resource.Updat
 		"Update is unsupported for Active Directories",
 		"Update is unsupported for Active Directories",
 	)
-
-	return
 }
 
 func (r *ActiveDirectoryResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -167,7 +172,7 @@ func (r *ActiveDirectoryResource) Delete(ctx context.Context, req resource.Delet
 		return
 	}
 
-	response, error := r.api.client.ActiveDirectoryApi.ActivedirectoriesDelete(r.api.auth, state.Id.ValueString(), API_CONTENT_TYPE, API_ACCEPT_TYPE, nil)
+	response, error := r.api.Client.ActiveDirectoryApi.ActivedirectoriesDelete(r.api.Auth, state.Id.ValueString(), api.API_CONTENT_TYPE, api.API_ACCEPT_TYPE, nil)
 	if error != nil {
 		resp.Diagnostics.AddError(
 			"Error deleting Active Directory from JumpCloud",
@@ -181,4 +186,5 @@ func (r *ActiveDirectoryResource) Delete(ctx context.Context, req resource.Delet
 }
 
 func (r *ActiveDirectoryResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
