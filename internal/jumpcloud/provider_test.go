@@ -18,7 +18,7 @@ var testAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServe
 }
 
 func GetTestEnv() string {
-	test_env := os.Getenv("TF_VAR_test_env")
+	test_env := os.Getenv("TEST_ENV")
 	if len(test_env) == 0 {
 		test_env = "default"
 	}

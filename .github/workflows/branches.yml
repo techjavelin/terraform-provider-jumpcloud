@@ -69,8 +69,8 @@ jobs:
       - run: go mod download
       - env:
           TF_ACC: "1"
-          TF_VAR_jumpcloud_api_key: ${{ secrets.JUMPCLOUD_API_KEY }}
-          TF_VAR_test_env: ${{ matrix.terraform }}
+          JUMPCLOUD_API_KEY: ${{ secrets.JUMPCLOUD_API_KEY }}
+          TEST_ENV: ${{ matrix.terraform }}
         run: go test -v -cover ./internal/jumpcloud/
         timeout-minutes: 10
 
