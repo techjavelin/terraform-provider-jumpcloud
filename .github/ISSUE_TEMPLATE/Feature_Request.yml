@@ -1,6 +1,6 @@
 name: Feature Request
 description: I have a suggestion (and might want to implement myself)!
-title: "Support for [thing]"
+title: "FEAT: Support for [thing]"
 body:
   - type: checkboxes
     attributes:
