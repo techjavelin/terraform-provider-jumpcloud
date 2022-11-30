@@ -19,11 +19,11 @@ const (
 type (
 	UserGroup struct {
 		Attributes              *UserGroupAttributes             `json:"attributes,omitempty"`
-		Description             *string                          `json:"description,omitempty"`
-		Email                   *string                          `json:"email,omitempty"`
+		Description             string                           `json:"description,omitempty"`
+		Email                   string                           `json:"email,omitempty"`
 		Id                      string                           `json:"id"`
 		MemberQuery             *UserGroupMemberQuery            `json:"memberQuery,omitempty"`
-		MemberQueryExceptions   *UserGroupMemberQueryExceptions  `json:"memberQueryExceptions,omitempty"`
+		MemberQueryExceptions   []UserGroupMemberQueryExceptions `json:"memberQueryExceptions,omitempty"`
 		MemberSuggestionsNotify bool                             `json:"memberSuggestionsNotify,omitempty"`
 		MembershipAutomated     bool                             `json:"membershipAutomated,omitempty"`
 		Name                    string                           `json:"name"`
@@ -87,14 +87,19 @@ type (
 )
 
 func (c *Client) CallApiWithBody(method string, group *UserGroup) (payload UserGroup, response *http.Response, err error) {
-	tflog.SubsystemInfo(c.Context, SUBSYSTEM_NAME, "Creating new UserGroup named "+group.Name, map[string]interface{}{
+	tflog.SubsystemInfo(c.Context, SUBSYSTEM_NAME, "Upsert UserGroup named "+group.Name, map[string]interface{}{
 		"client":  "UserGroup",
 		"func":    "CallApiWithBody",
 		"method":  method,
 		"payload": c.getPayloadAsString(payload),
 	})
 
-	request, err := c.prepareRequest(http.MethodPost, apiVersion, apiEndpoint, group, nil, nil)
+	endpoint := apiEndpoint
+	if group.Id != "" {
+		endpoint = fmt.Sprintf("%s/%s", apiEndpoint, group.Id)
+	}
+
+	request, err := c.prepareRequest(method, apiVersion, endpoint, group, nil, nil)
 	if err != nil {
 		return payload, nil, err
 	}

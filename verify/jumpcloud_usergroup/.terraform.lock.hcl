@@ -5,6 +5,6 @@ provider "registry.terraform.io/techjavelin/jumpcloud" {
   version     = "0.0.1"
   constraints = "0.0.1"
   hashes = [
-    "h1:pU4xuy/3OZPlGR/+h47EPONWGORltHSo4cpg/l2YL7A=",
+    "h1:h7ioYKRhqaeg3X10iB59fL9JGF0UkE/f1x/Onnud4ZE=",
   ]
 }

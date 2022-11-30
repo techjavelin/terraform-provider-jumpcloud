@@ -16,5 +16,5 @@ provider "jumpcloud" {
 }
 
 resource "jumpcloud_usergroup" "test" {
-    name = "terraform-provider-jumpcloud"
+    name = "terraform-provider-jumpcloud-updated"
 }

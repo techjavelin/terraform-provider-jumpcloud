@@ -1,3 +1,5 @@
+SHELL				?= /bin/bash
+
 # Update these for your dev env
 ONEPASSWORD_VAULT	?= dev-local
 ONEPASSWORD_SECRET  ?= jumpcloud_techjavelin_oss
@@ -61,31 +63,37 @@ install: build
 	mkdir -p $(plugin_install_path)
 	cp $(provider_executable) $(plugin_install_path)
 
-verify_prepare:
-	export TF_VAR_jumpcloud_api_key=$(jumpcloud_api_key) && \
-	export TF_LOG=INFO && \
-	export TF_LOG_PATH=$(VERIFY_LOG_FILE) && \
-	op run -- $(TERRAFORM_BIN) -chdir=$(VERIFY_PATH) state refresh 
-	
-verify: install
-	make verify/add
+verify: install verify/cleanup
+	rm -f $(VERIFY_LOG_FILE)
+	make verify/create
 	make verify/import
+	make verify/update
 	make verify/destroy
+	make verify/cleanup
 
-verify/nodestroy: install
+verify/nodestroy: install verify/cleanup
 	make verify/add
 	make verify/import
 
-verify/add: install verify_cleanup
-	export TF_VAR_jumpcloud_api_key=$(jumpcloud_api_key) && \
+verify/init:
+	@echo "-=-=-=-=-=-=] init [=-=-=-=-=-=-" 
+	@$(TERRAFORM_BIN) -chdir=$(VERIFY_PATH) init 
+
+verify/prepare:
+	@echo "-=-=-=-=-=-=] prepare [=-=-=-=-=-=-" 
+	rm -f $(VERIFY_PATH)/terraform.tfplan
+	@export TF_VAR_jumpcloud_api_key=$(jumpcloud_api_key) && \
 	export TF_LOG=$(VERIFY_LOG_PRIORITY) && \
 	export TF_LOG_PATH=$(VERIFY_LOG_FILE) && \
-	echo "-=-=-=-=-=-=] init [=-=-=-=-=-=-" && op run -- $(TERRAFORM_BIN) -chdir=$(VERIFY_PATH) init && \
-	echo "-=-=-=-=-=-=] plan [=-=-=-=-=-=-" && op run -- $(TERRAFORM_BIN) -chdir=$(VERIFY_PATH) plan -out=/tmp/tfplan && \
-	echo "-=-=-=-=-=-=] apply [=-=-=-=-=-=-" && op run -- $(TERRAFORM_BIN) -chdir=$(VERIFY_PATH) apply --auto-approve /tmp/tfplan 
+	op run -- $(TERRAFORM_BIN) -chdir=$(VERIFY_PATH) plan -out=terraform.tfplan 
+
+verify/create: 
+	@echo "-=-=-=-=-=-=] create [=-=-=-=-=-=-" && \
+	cp $(VERIFY_PATH)/main.create $(VERIFY_PATH)/main.tf
+	@make verify/init verify/prepare verify/apply
 
 verify/import: 
-	export TF_VAR_jumpcloud_api_key=$(jumpcloud_api_key) && \
+	@export TF_VAR_jumpcloud_api_key=$(jumpcloud_api_key) && \
 	export TF_LOG=$(VERIFY_LOG_PRIORITY) && \
 	export TF_LOG_PATH=$(VERIFY_LOG_FILE) && \
 	echo "-=-=-=-=-=-=] import [=-=-=-=-=-=-" && \
@@ -94,23 +102,30 @@ verify/import:
 	echo "Resource ID: $$RESOURCE_ID" && \
 	op run -- $(TERRAFORM_BIN) -chdir=$(VERIFY_PATH) import "$(VERIFY_RESOURCE).test" $$RESOURCE_ID 
 
-verify/destroy:
-	export TF_VAR_jumpcloud_api_key=$(jumpcloud_api_key) && \
+verify/update:
+	@echo "-=-=-=-=-=-=] update [=-=-=-=-=-=-" 
+	cp $(VERIFY_PATH)/main.update $(VERIFY_PATH)/main.tf && \
+	op run -- $(TERRAFORM_BIN) -chdir=$(VERIFY_PATH) apply --auto-approve terraform.tfplan
+
+verify/apply:
+	@echo "-=-=-=-=-=-=] apply [=-=-=-=-=-=-"
+	@export TF_VAR_jumpcloud_api_key=$(jumpcloud_api_key) && \
 	export TF_LOG=$(VERIFY_LOG_PRIORITY) && \
 	export TF_LOG_PATH=$(VERIFY_LOG_FILE) && \
-	echo "-=-=-=-=-=-=] destroy [=-=-=-=-=-=-" && op run -- $(TERRAFORM_BIN) -chdir=$(VERIFY_PATH) destroy --auto-approve
+	op run -- $(TERRAFORM_BIN) -chdir=$(VERIFY_PATH) apply --auto-approve terraform.tfplan
+
+verify/destroy:
+	@echo "-=-=-=-=-=-=] destroy [=-=-=-=-=-=-"
+	@export TF_VAR_jumpcloud_api_key=$(jumpcloud_api_key) && \
+	export TF_LOG=$(VERIFY_LOG_PRIORITY) && \
+	export TF_LOG_PATH=$(VERIFY_LOG_FILE) && \
+	op run -- $(TERRAFORM_BIN) -chdir=$(VERIFY_PATH) destroy --auto-approve 
+	@make verify/cleanup
 
 verify/cleanup:
-	rm -rf $(VERIFY_PATH)/.terraform $(VERIFY_PATH)/.terraform.lock.hcl $(VERIFY_PATH)/terraform.tfstate $(VERIFY_PATH)/terraform.tfstate.backup 
+	@echo "-=-=-=-=-=-=] cleanup [=-=-=-=-=-=-"
+	rm -rf $(VERIFY_PATH)/.terraform $(VERIFY_PATH)/.terraform.lock.hcl $(VERIFY_PATH)/terraform.tfstate $(VERIFY_PATH)/terraform.tfstate* $(VERIFY_PATH)/main.tf
 
 build/debug:
 	go build $(debug_flags)
 
-verify/debug: verify_cleanup
-	export TF_VAR_jumpcloud_api_key=$(jumpcloud_api_key) && \
-	export TF_LOG=TRACE && \
-	export TF_REATTACH_PROVIDERS=$(debug_attach) && \
-	echo "-=-=-=-=-=-=] init [=-=-=-=-=-=-" && op run -- $(TERRAFORM_BIN) -chdir=$(VERIFY_PATH) init && \
-	echo "-=-=-=-=-=-=] plan [=-=-=-=-=-=-" && op run -- $(TERRAFORM_BIN) -chdir=$(VERIFY_PATH) plan -out=/tmp/tfplan && \
-	echo "-=-=-=-=-=-=] apply [=-=-=-=-=-=-" && op run -- $(TERRAFORM_BIN) -chdir=$(VERIFY_PATH) apply --auto-approve /tmp/tfplan && \
-	echo "-=-=-=-=-=-=] destroy [=-=-=-=-=-=-" && op run -- $(TERRAFORM_BIN) -chdir=$(VERIFY_PATH) destroy --auto-approve

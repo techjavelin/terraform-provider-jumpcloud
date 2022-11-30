@@ -131,21 +131,30 @@ func (r *UserGroupResource) Read(ctx context.Context, req resource.ReadRequest, 
 }
 
 func (r *UserGroupResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	tflog.Debug(ctx, "Updating UserGroupResource")
 	var plan *UserGroupResourceModel
 
-	diags := req.State.Get(ctx, plan)
+	diags := req.State.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "Got Error while trying to set plan")
 		return
 	}
 
-	tflog.Info(ctx, "Refreshing User Group State from JumpCloud")
+	tflog.Trace(ctx, "Evaluated Plan", map[string]interface{}{
+		"UserGroupResourceModel": spew.Sdump(plan),
+	})
 
+	tflog.Info(ctx, "Refreshing User Group State from JumpCloud")
 	usergroup := convertResourceToUserGroup(ctx, plan)
 
-	group, _, error := r.api.UpdateUserGroup(&usergroup)
+	group, response, error := r.api.UpdateUserGroup(&usergroup)
 
-	// tflog.Trace(ctx, "JumpCloud API Response: \n"+spew.Sdump(response.Body))
+	tflog.Trace(ctx, "Got response from JumpCloud API", map[string]interface{}{
+		"Response":  r.api.ReadBody(response.Body),
+		"UserGroup": spew.Sdump(group),
+		"Error":     spew.Sdump(error),
+	})
 
 	if error != nil {
 		resp.Diagnostics.AddError(
@@ -203,8 +212,8 @@ func getStringValueIfNotNil(val *string) types.String {
 func (r *UserGroupResource) convertApiResponseToResource(ctx context.Context, plan *UserGroupResourceModel, group *apiclient.UserGroup) (diags diag.Diagnostics) {
 	plan.Id = types.StringValue(group.Id)
 	plan.Name = types.StringValue(group.Name)
-	plan.Description = getStringValueIfNotNil(group.Description)
-	plan.Email = getStringValueIfNotNil(group.Email)
+	plan.Description = types.StringValue(group.Description)
+	plan.Email = types.StringValue(group.Email)
 	plan.MemberSuggestionsNotify = types.BoolValue(group.MemberSuggestionsNotify)
 	plan.MembershipAutomated = types.BoolValue(group.MembershipAutomated)
 
@@ -378,13 +387,14 @@ func convertResourceToUserGroup(ctx context.Context, plan *UserGroupResourceMode
 	}
 
 	usergroup := apiclient.UserGroup{
+		Id:          plan.Id.ValueString(),
 		Name:        plan.Name.ValueString(),
 		MemberQuery: memberQuery,
 		Attributes:  attributes,
 	}
 
-	usergroup.Description = getStringIfAttributeNotNil(plan.Description)
-	usergroup.Email = getStringIfAttributeNotNil(plan.Email)
+	usergroup.Description = plan.Description.ValueString()
+	usergroup.Email = plan.Description.ValueString()
 
 	usergroup.MemberSuggestionsNotify = plan.MemberSuggestionsNotify.ValueBool()
 	usergroup.MembershipAutomated = plan.MembershipAutomated.ValueBool()

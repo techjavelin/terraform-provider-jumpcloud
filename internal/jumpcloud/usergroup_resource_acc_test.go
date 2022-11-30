@@ -15,6 +15,7 @@ func TestAccUserGroupResource(t *testing.T) {
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
+				ResourceName: "jumpcloud_usergroup.test",
 				Config: ProviderConfig() + `
 resource "jumpcloud_usergroup" "test" {
 	name = "` + group_name + `"
@@ -30,6 +31,7 @@ resource "jumpcloud_usergroup" "test" {
 				ImportStateVerify: true,
 			},
 			{
+				ResourceName: "jumpcloud_usergroup.test",
 				Config: ProviderConfig() + `
 resource "jumpcloud_usergroup" "test" {
 	name = "` + group_name + `-updated"
